@@ -51,7 +51,7 @@ module LinkedIn
           if options.delete(:public)
             path +=":public"
           elsif fields
-            path +=":(#{fields.map{ |f| f.to_s.gsub("_","-") }.join(',')})"
+            path += field_selector(fields)
           end
 
           headers = options.delete(:headers) || {}
@@ -85,6 +85,24 @@ module LinkedIn
           else
             path += "~"
           end
+        end
+
+        def field_selector(fields)
+          result = ":("
+          fields = fields.to_a.map do |field|
+            if field.is_a?(Hash)
+              innerFields = []
+              field.each do |key, value|
+                innerFields << key.to_s.gsub("_","-") + field_selector(value)
+              end
+              innerFields.join(',')
+            else
+              field.to_s.gsub("_","-")
+            end
+          end
+          result += fields.join(',')
+          result += ")"
+          result
         end
 
     end
